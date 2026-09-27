@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>C.A.Z. — Registre</title>
+<link rel="icon" type="image/png" href="caz-icon.png">
+<link rel="apple-touch-icon" href="caz-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="C.A.Z.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0b; --bg2:#111113; --panel:rgba(255,255,255,.035); --panel-solid:#17171a;
+    --line:rgba(255,255,255,.14); --line-soft:rgba(255,255,255,.07);
+    --ink:#e4e4e6; --ink-dim:#96969c; --ink-faint:#5c5c62;
+    --accent:#f2f2f3; --accent-dim:#b8b8bd; --accent-glow:rgba(255,255,255,.12);
+    --danger:#a86b68;
+    --mono:'JetBrains Mono',ui-monospace,monospace; --sans:'Space Grotesk',system-ui,sans-serif; --serif:'Cormorant Garamond',Georgia,serif;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); position:relative; overflow-x:hidden;
+  }
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 20% -10%, rgba(255,255,255,.05), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(255,255,255,.03), transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  }
+  body::after{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.4;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 3px);
+  }
+  ::selection{background:var(--accent-dim); color:#000;}
+  input,button,textarea{font-family:inherit;}
+  input:focus, textarea:focus{outline:none;}
+
+  .emblem{width:30px; height:30px; flex-shrink:0;}
+  .emblem circle, .emblem path, .emblem line{stroke:var(--accent); fill:none;}
+
+  /* ---------- Lock screen ---------- */
+  #lock{
+    position:relative; z-index:1; min-height:100%; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .lock-card{
+    width:100%; max-width:400px; background:var(--panel); border:1px solid var(--line-soft);
+    border-radius:14px; padding:44px 32px 34px; text-align:center; position:relative;
+    box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.03);
+    backdrop-filter:blur(20px);
+    animation:riseIn .6s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes riseIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
+  .lock-emblem{
+    width:56px; height:56px; margin:0 auto 18px; border-radius:50%; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .lock-emblem::before{
+    content:''; position:absolute; inset:-6px; border-radius:50%; border:1px solid rgba(255,255,255,.12);
+    animation:pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.35; transform:scale(1);}50%{opacity:.8; transform:scale(1.06);}}
+  .crest{font-family:var(--mono); font-size:10px; letter-spacing:5px; color:var(--ink-faint); margin-bottom:10px;}
+  .brand{font-family:var(--serif); font-size:36px; font-weight:600; letter-spacing:1px; margin:0 0 6px; color:var(--ink);}
+  .brand em{font-style:normal; color:var(--accent); border-bottom:1px solid var(--line);}
+  .sub{font-size:10px; color:var(--ink-faint); letter-spacing:2.5px; text-transform:uppercase; margin-bottom:34px;}
+  .field-label{display:block; text-align:left; font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--ink-dim); margin-bottom:9px; text-transform:uppercase;}
+  #pw{
+    width:100%; background:rgba(0,0,0,.35); border:1px solid var(--line-soft); color:var(--ink);
+    padding:14px 16px; border-radius:8px; font-family:var(--mono); font-size:15px; letter-spacing:4px;
+    text-align:center; transition:border-color .2s, box-shadow .2s;
+  }
+  #pw:focus{border-color:var(--accent-dim); box-shadow:0 0 0 3px var(--accent-glow);}
+  .lock-btn{
+    width:100%; margin-top:18px; background:linear-gradient(135deg, var(--accent), #c7c7cc); color:#0a0a0b; border:none;
+    padding:14px; border-radius:8px; font-family:var(--mono); font-weight:700; font-size:11px;
+    letter-spacing:2.5px; cursor:pointer; text-transform:uppercase; transition:transform .15s, box-shadow .15s;
+  }
+  .lock-btn:hover{transform:translateY(-1px); box-shadow:0 8px 24px var(--accent-glow);}
+  .lock-btn:active{transform:translateY(0);}
+  .lock-err{font-family:var(--mono); font-size:10px; color:var(--danger); height:16px; margin-top:14px; letter-spacing:1px;}
+  .shake{animation:shake .35s;}
+  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .lock-foot{margin-top:26px; font-family:var(--mono); font-size:8.5px; color:var(--ink-faint); letter-spacing:1.5px;}
+
+  /* ---------- App shell ---------- */
+  #app{display:none; min-height:100%; flex-direction:column; position:relative; z-index:1;}
+  header{
+    position:sticky; top:0; z-index:5; background:rgba(10,10,11,.82); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-soft); padding:calc(16px + env(safe-area-inset-top,0px)) 20px 16px;
+  }
+  .hd-row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .hd-brand{display:flex; align-items:center; gap:12px;}
+  .hd-title{font-family:var(--serif); font-weight:600; font-size:19px; letter-spacing:.5px; color:var(--ink);}
+  .hd-title small{display:block; font-family:var(--mono); font-size:9px; color:var(--ink-faint); letter-spacing:2px; font-weight:400; margin-top:2px;}
+  .sync-dot{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent-dim); margin-right:6px; box-shadow:0 0 6px var(--accent-glow); animation:blink 2.4s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:.4;}50%{opacity:1;}}
+  .agent-pick{display:flex; gap:4px; background:rgba(255,255,255,.03); border:1px solid var(--line-soft); border-radius:20px; padding:3px;}
+  .agent-pick button{
+    background:transparent; border:none; color:var(--ink-dim); padding:7px 15px; border-radius:16px;
+    font-family:var(--mono); font-size:11px; cursor:pointer; letter-spacing:1px; transition:all .2s;
+  }
+  .agent-pick button.active{background:var(--accent); color:#0a0a0b; font-weight:700;}
+  .logout{background:none; border:1px solid var(--line-soft); color:var(--ink-faint); font-family:var(--mono); font-size:10px; padding:8px 12px; border-radius:8px; cursor:pointer; letter-spacing:1px; transition:all .2s;}
+  .logout:hover{border-color:var(--danger); color:var(--danger);}
+
+  main{flex:1; max-width:920px; width:100%; margin:0 auto; padding:28px 20px 70px;}
+
+  .toolbar{display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
+  .search-wrap{flex:1; min-width:200px; position:relative;}
+  .search-wrap svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:15px; height:15px; opacity:.4;}
+  #search{
+    width:100%; background:rgba(255,255,255,.03); border:1px solid var(--line-soft); color:var(--ink);
+    padding:13px 14px 13px 40px; border-radius:9px; font-family:var(--mono); font-size:13px; transition:border-color .2s;
+  }
+  #search:focus{border-color:var(--accent-dim);}
+  .new-btn{
+    background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--accent);
+    padding:13px 20px; border-radius:9px; font-family:var(--mono); font-size:12px; letter-spacing:1px;
+    cursor:pointer; white-space:nowrap; transition:all .2s;
+  }
+  .new-btn:hover{background:rgba(255,255,255,.1); transform:translateY(-1px);}
+
+  .count-line{font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:1.5px; margin:18px 2px 14px; display:flex; align-items:center;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px;}
+  .card{
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:12px; padding:20px 20px 18px;
+    cursor:pointer; position:relative; overflow:hidden; backdrop-filter:blur(10px);
+    transition:transform .2s, border-color .2s, box-shadow .2s;
+    animation:cardIn .45s cubic-bezier(.16,1,.3,1) backwards;
+  }
+  @keyframes cardIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  .card::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:linear-gradient(180deg, var(--accent), transparent);
+    opacity:0; transition:opacity .2s;
+  }
+  .card:hover{transform:translateY(-3px); border-color:var(--line); box-shadow:0 14px 34px rgba(0,0,0,.5);}
+  .card:hover::before{opacity:1;}
+  .card-name{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--ink); line-height:1.25;}
+  .card-name .fn{display:block; font-size:13px; font-family:var(--sans); font-weight:400; color:var(--ink-dim); margin-top:1px;}
+  .ci-code{
+    display:inline-block; margin-top:14px; font-family:var(--mono); font-weight:700; letter-spacing:3px; color:var(--accent);
+    background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:6px;
+    padding:6px 12px; font-size:14px;
+  }
+  .empty{text-align:center; padding:70px 20px; color:var(--ink-faint); font-family:var(--mono); font-size:12px; letter-spacing:1px;}
+
+  /* ---------- Modals ---------- */
+  .overlay{
+    display:none; position:fixed; inset:0; background:rgba(2,2,3,.78); backdrop-filter:blur(4px);
+    z-index:20; align-items:flex-end; justify-content:center;
+  }
+  .overlay.show{display:flex;}
+  @media(min-width:620px){ .overlay{align-items:center; padding:24px;} }
+  .modal{
+    background:var(--panel-solid); border:1px solid var(--line-soft); border-top:1px solid var(--line);
+    width:100%; max-width:440px; border-radius:16px 16px 0 0; padding:26px 24px calc(26px + env(safe-area-inset-bottom,0px));
+    max-height:88vh; overflow-y:auto; animation:modalIn .3s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes modalIn{from{opacity:0; transform:translateY(24px);} to{opacity:1; transform:translateY(0);}}
+  @media(min-width:620px){ .modal{border-radius:14px; border-top:1px solid var(--line);} }
+  .modal h3{margin:0 0 4px; font-family:var(--serif); font-size:22px; font-weight:600;}
+  .modal .m-sub{font-family:var(--mono); font-size:9.5px; color:var(--ink-faint); letter-spacing:1.5px; margin-bottom:22px;}
+  .m-field{margin-bottom:14px;}
+  .m-field label{display:block; font-family:var(--mono); font-size:9px; letter-spacing:1.5px; color:var(--ink-dim); text-transform:uppercase; margin-bottom:7px;}
+  .m-field input{
+    width:100%; background:rgba(0,0,0,.3); border:1px solid var(--line-soft); color:var(--ink);
+    padding:12px 13px; border-radius:8px; font-family:var(--sans); font-size:14px; transition:border-color .2s;
+  }
+  .m-field input:focus{border-color:var(--accent-dim);}
+  .ci-hint{font-family:var(--mono); font-size:10px; color:var(--ink-faint); margin-top:7px;}
+  .m-actions{display:flex; gap:10px; margin-top:22px;}
+  .m-actions button{flex:1; padding:13px; border-radius:9px; font-family:var(--mono); font-size:11px; letter-spacing:1.5px; cursor:pointer; transition:all .2s;}
+  .btn-cancel{background:none; border:1px solid var(--line-soft); color:var(--ink-dim);}
+  .btn-cancel:hover{border-color:var(--ink-dim);}
+  .btn-confirm{background:linear-gradient(135deg, var(--accent), #c7c7cc); border:none; color:#0a0a0b; font-weight:700;}
+  .btn-confirm:hover{box-shadow:0 8px 20px var(--accent-glow);}
+
+  .detail-emblem{width:44px; height:44px; border-radius:50%; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+  .detail-name{font-family:var(--serif); font-size:24px; font-weight:600;}
+  .detail-fn{font-family:var(--sans); font-size:14px; color:var(--ink-dim); margin-bottom:16px;}
+  .detail-code-box{
+    background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:10px;
+    padding:18px; text-align:center; margin-bottom:8px;
+  }
+  .detail-code-label{font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--ink-dim); margin-bottom:8px;}
+  .detail-code{font-family:var(--mono); font-size:30px; font-weight:700; color:var(--accent); letter-spacing:6px;}
+
+  .toast{
+    position:fixed; bottom:calc(20px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%);
+    background:var(--panel-solid); border:1px solid var(--line); color:var(--ink); padding:11px 20px;
+    border-radius:9px; font-family:var(--mono); font-size:11px; letter-spacing:1px; z-index:40;
+    opacity:0; pointer-events:none; transition:opacity .25s; box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <div class="lock-card">
+    <div class="lock-emblem">
+      <svg class="emblem" viewBox="0 0 40 40"><circle cx="20" cy="20" r="13"/><path d="M20 9 L20 20 L27 25"/></svg>
+    </div>
+    <div class="crest">C · A · Z</div>
+    <h1 class="brand">Registre <em>C.A.Z.</em></h1>
+    <div class="sub">Accès restreint — personnel autorisé</div>
+    <label class="field-label" for="pw">Code d'accès</label>
+    <input id="pw" type="password" autocomplete="off" placeholder="••••••••" maxlength="30">
+    <button class="lock-btn" id="lockBtn">Accéder au système</button>
+    <div class="lock-err" id="lockErr"></div>
+    <div class="lock-foot">CONNEXION SURVEILLÉE · TOUTE TENTATIVE EST JOURNALISÉE</div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="hd-row">
+      <div class="hd-brand">
+        <svg class="emblem" viewBox="0 0 40 40"><circle cx="20" cy="20" r="13"/><path d="M20 9 L20 20 L27 25"/></svg>
+        <div class="hd-title">Registre C.A.Z.<small>Dossiers d'enquête — accès unifié</small></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="logout" id="logoutBtn">VERROUILLER</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search" placeholder="Rechercher un nom, prénom ou CI…" autocomplete="off">
+      </div>
+      <button class="new-btn" id="newBtn">+ Nouveau dossier</button>
+    </div>
+    <div class="count-line" id="countLine"></div>
+    <div class="grid" id="list"></div>
+  </main>
+</div>
+
+<div class="overlay" id="newOverlay">
+  <div class="modal">
+    <h3>Ouverture de dossier</h3>
+    <div class="m-sub">ATTRIBUTION D'UN CODE D'IDENTIFICATION</div>
+    <div class="m-field"><label>Nom</label><input id="f-nom" placeholder="Nom de famille"></div>
+    <div class="m-field"><label>Prénom</label><input id="f-prenom" placeholder="Prénom"></div>
+    <div class="m-field">
+      <label>Code CI</label>
+      <input id="f-ci" placeholder="Auto si vide" maxlength="10" style="text-transform:uppercase; font-family:var(--mono); letter-spacing:3px;">
+      <div class="ci-hint" id="ci-suggest">Laissez vide pour générer un code automatiquement.</div>
+    </div>
+    <div class="m-actions">
+      <button class="btn-cancel" id="newCancel">Annuler</button>
+      <button class="btn-confirm" id="newConfirm">Ouvrir le dossier</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="detailOverlay">
+  <div class="modal" id="detailBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="application/json" id="caz-data">
+{"password":"caz.clamedia-123//deaopps","agents":["Alan","Zeynab"],"records":[]}
+</script>
+
+<script>
+(function(){
+  const dataEl = document.getElementById('caz-data');
+  const DATA = JSON.parse(dataEl.textContent);
+  let artifactNS = null;
+
+  claude.use("artifact").then(ns => { artifactNS = ns; });
+
+  // ---------- Lock screen ----------
+  const lock = document.getElementById('lock');
+  const app = document.getElementById('app');
+  const pwInput = document.getElementById('pw');
+  const lockErr = document.getElementById('lockErr');
+  const lockCard = document.querySelector('.lock-card');
+
+  function tryUnlock(){
+    if(pwInput.value === DATA.password){
+      lock.style.display = 'none';
+      app.style.display = 'flex';
+      render();
+    } else {
+      lockErr.textContent = 'CODE INVALIDE — ACCÈS REFUSÉ';
+      lockCard.classList.remove('shake'); void lockCard.offsetWidth; lockCard.classList.add('shake');
+      pwInput.value = '';
+    }
+  }
+  document.getElementById('lockBtn').addEventListener('click', tryUnlock);
+  pwInput.addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    app.style.display = 'none'; lock.style.display = 'flex'; pwInput.value=''; lockErr.textContent='';
+  });
+
+  // ---------- List ----------
+  function render(){
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const list = document.getElementById('list');
+    let recs = DATA.records.slice();
+    if(q){
+      recs = recs.filter(r =>
+        r.nom.toLowerCase().includes(q) ||
+        r.prenom.toLowerCase().includes(q) ||
+        r.ci.toLowerCase().includes(q)
+      );
+    }
+    document.getElementById('countLine').innerHTML =
+      `<span class="sync-dot"></span>${DATA.records.length} DOSSIER${DATA.records.length>1?'S':''} AU REGISTRE — SYNCHRONISÉ${q ? ' · ' + recs.length + ' résultat' + (recs.length>1?'s':'') : ''}`;
+
+    if(recs.length === 0){
+      list.innerHTML = `<div class="empty" style="grid-column:1/-1;">Aucun dossier ne correspond à cette recherche.</div>`;
+      return;
+    }
+    list.innerHTML = recs.map((r,i) => `
+      <div class="card" data-id="${r.id}" style="animation-delay:${Math.min(i*40,300)}ms">
+        <div class="card-name">${escapeHtml(r.nom)}<span class="fn">${escapeHtml(r.prenom)}</span></div>
+        <div class="ci-code">${escapeHtml(r.ci)}</div>
+      </div>
+    `).join('');
+    list.querySelectorAll('.card').forEach(card => card.addEventListener('click', () => openDetail(card.dataset.id)));
+  }
+  document.getElementById('search').addEventListener('input', render);
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------- New record ----------
+  const newOverlay = document.getElementById('newOverlay');
+  document.getElementById('newBtn').addEventListener('click', () => {
+    document.getElementById('f-nom').value = '';
+    document.getElementById('f-prenom').value = '';
+    document.getElementById('f-ci').value = '';
+    newOverlay.classList.add('show');
+  });
+  document.getElementById('newCancel').addEventListener('click', () => newOverlay.classList.remove('show'));
+  newOverlay.addEventListener('click', e => { if(e.target === newOverlay) newOverlay.classList.remove('show'); });
+
+  function genCI(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code;
+    do {
+      code = Array.from({length:5}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+    } while(DATA.records.some(r => r.ci === code));
+    return code;
+  }
+
+  document.getElementById('newConfirm').addEventListener('click', () => {
+    const nom = document.getElementById('f-nom').value.trim();
+    const prenom = document.getElementById('f-prenom').value.trim();
+    let ci = document.getElementById('f-ci').value.trim().toUpperCase();
+    if(!nom || !prenom){ showToast('Nom et prénom requis'); return; }
+    if(ci && DATA.records.some(r => r.ci === ci)){ showToast('Ce code CI existe déjà'); return; }
+    if(!ci) ci = genCI();
+    DATA.records.push({ id: 'r' + Date.now(), nom, prenom, ci });
+    newOverlay.classList.remove('show');
+    render();
+    persist('Nouveau dossier ouvert : ' + ci);
+  });
+
+  // ---------- Detail ----------
+  const detailOverlay = document.getElementById('detailOverlay');
+  const detailBody = document.getElementById('detailBody');
+
+  function openDetail(id){
+    const r = DATA.records.find(x => x.id === id);
+    if(!r) return;
+    detailBody.innerHTML = `
+      <div class="detail-emblem"><svg class="emblem" viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="20" r="13"/><path d="M20 9 L20 20 L27 25"/></svg></div>
+      <div class="detail-name">${escapeHtml(r.nom)}</div>
+      <div class="detail-fn">${escapeHtml(r.prenom)}</div>
+      <div class="detail-code-box">
+        <div class="detail-code-label">CODE D'IDENTIFICATION</div>
+        <div class="detail-code">${escapeHtml(r.ci)}</div>
+      </div>
+      <div class="m-actions" style="margin-top:20px;">
+        <button class="btn-confirm" id="d-close" style="flex:1;">Fermer</button>
+      </div>
+    `;
+    detailOverlay.classList.add('show');
+    document.getElementById('d-close').addEventListener('click', () => detailOverlay.classList.remove('show'));
+  }
+  detailOverlay.addEventListener('click', e => { if(e.target === detailOverlay) detailOverlay.classList.remove('show'); });
+
+  // ---------- Persistence (shared: publish() updates the registry for every agent) ----------
+  let toastTimer;
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  async function persist(msg){
+    dataEl.textContent = JSON.stringify(DATA);
+    if(artifactNS){
+      try{
+        await artifactNS.publish('<!DOCTYPE html>\n' + document.documentElement.outerHTML);
+        showToast(msg || 'Enregistré et synchronisé');
+      }catch(e){
+        showToast('Non synchronisé (hors ligne)');
+      }
+    } else {
+      showToast(msg || 'Enregistré localement');
+    }
+  }
+})();
+</script>
+</body>
+</html>

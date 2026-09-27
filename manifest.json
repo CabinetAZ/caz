@@ -1,0 +1,12 @@
+{
+  "name": "Registre C.A.Z.",
+  "short_name": "C.A.Z.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0a0a0b",
+  "icons": [
+    { "src": "caz-icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
+    { "src": "caz-icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+  ]
+}
